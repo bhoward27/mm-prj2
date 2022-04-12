@@ -14,6 +14,7 @@ SOURCES += \
     pngwindow.cpp \
     utils.cpp \
     wav.cpp \
+    wav_compression.cpp \
     wavwindow.cpp
 
 HEADERS += \
@@ -21,6 +22,7 @@ HEADERS += \
     pngwindow.h \
     utils.h \
     wav.h \
+    wav_compression.h \
     wavwindow.h
 
 FORMS += \

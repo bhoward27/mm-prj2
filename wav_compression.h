@@ -1,0 +1,6 @@
+#ifndef WAV_COMPRESSION_H
+#define WAV_COMPRESSION_H
+
+
+
+#endif // WAV_COMPRESSION_H
