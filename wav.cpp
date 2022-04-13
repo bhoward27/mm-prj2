@@ -1,5 +1,6 @@
 #include "wav.h"
 #include "wav_compression.h"
+#include "utils.h"
 #include <QDataStream>
 #include <string>
 #include <stdexcept>
@@ -139,7 +140,9 @@ void WAV::read_data_header(QDataStream& in) {
     }
     else {
         in >> data_size;
-        add_bytes(header_bytes, data_size);
+
+        // Don't write the data_size to header_bytes. Why? Because the compressed file will not be the same size.
+        // add_bytes(header_bytes, data_size);
     }
 }
 

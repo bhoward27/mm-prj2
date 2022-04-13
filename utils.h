@@ -5,6 +5,7 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QChartView>
 #include <memory>
+#include <vector>
 
 void show_chart(
         std::unique_ptr<QMainWindow>& window,
@@ -13,5 +14,14 @@ void show_chart(
         QLineSeries* series, QString title,
         int x, int y
 );
+
+// Append x to the byte buffer, bytes.
+template<class T>
+void add_bytes(std::vector<quint8>& bytes, T x) {
+    for (unsigned long i = 0; i < sizeof(x); i++) {
+        bytes.push_back(0);
+    }
+    std::memcpy(&bytes.data()[bytes.size() - sizeof(x)], &x, sizeof(x));
+}
 
 #endif // UTILS_H

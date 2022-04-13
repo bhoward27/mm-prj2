@@ -1,6 +1,7 @@
 ﻿#include "wavwindow.h"
 #include "ui_wavwindow.h"
 #include "utils.h"
+#include "wav_compression.h"
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -72,11 +73,19 @@ void WavWindow::on_selectFileButton_clicked() {
     }
     switch (wav.bits_per_sample) {
         case 8:
+        {
+            CompressedWAV<quint8> c_wav8 = CompressedWAV<quint8>();
+            compress(wav, c_wav8);
             plot_waveform((quint8*) wav.bytes.get(), wav.data_size, wav);
             break;
+        }
         case 16:
+        {
+            CompressedWAV<qint16> c_wav16 = CompressedWAV<qint16>();
+            compress(wav, c_wav16);
             plot_waveform((qint16*) wav.bytes.get(), wav.data_size/2, wav);
             break;
+        }
         default:
             // Throw error?
             cout << "bits per sample == " << wav.bits_per_sample << endl;

@@ -35,15 +35,6 @@ class WAV {
         WAVReadResult read(QFile& open_file);
         void read_data_header(QDataStream& in);
         void read_LIST_header(QDataStream& in);
-
-        // Append x to the byte buffer, bytes.
-        template<class T>
-        void add_bytes(std::vector<quint8>& bytes, T x) {
-            for (unsigned long i = 0; i < sizeof(x); i++) {
-                bytes.push_back(0);
-            }
-            memcpy(&bytes.data()[bytes.size() - sizeof(x)], &x, sizeof(x));
-        }
 };
 
 #endif // WAV_H
