@@ -42,6 +42,7 @@ void WavWindow::on_selectFileButton_clicked() {
     }
 
     WAV wav = WAV();
+    wav.file_name = file_name;
     WAVReadResult res = wav.read(file);
     file.close();
     switch (res) {
@@ -58,7 +59,7 @@ void WavWindow::on_selectFileButton_clicked() {
         case WAVReadResult::not_fmt:
             cout << "Error: not_fmt" << endl;
             break;
-        case WAVReadResult::not_lpcm:
+        case WAVReadResult::not_lpcm_or_lossless:
             cout << "Error: not_lpcm" << endl;
             break;
         case WAVReadResult::not_mono_or_stereo:

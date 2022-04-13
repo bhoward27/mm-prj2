@@ -10,29 +10,6 @@ using std::array;
 using std::vector;
 
 template<class T>
-struct Frame {
-    bool is_constant;
-    quint8 p;
-    vector<T> first_p_samples;
-    vector<T> residuals;
-    quint8 m;
-};
-
-template<class T>
-struct CompressedWAV {
-    quint32 n;
-    quint16 num_samples_per_frame;
-    quint16 bit_depth;
-    vector<Frame<T>> frames;
-
-    // These bytes shall be the final output for the compressed audio file.
-    vector<quint8> bytes;
-};
-
-const quint16 NUM_SAMPLES_PER_FRAME = 1152;
-const quint8 NUM_PREDICTORS = 4;
-
-template<class T>
 T predict(quint8 p, quint16 n, const vector<T>& x_hat) {
     if (n >= x_hat.size()) throw invalid_argument("n must be less than x.size()");
     switch (p) {
@@ -198,9 +175,11 @@ void encode(CompressedWAV<T>& out_c_wav) {
     }
 }
 
+template<class T>
 void write(const WAV& wav, const CompressedWAV<T>& c_wav) {
-    QFile("compressed - " + wav.file_name);
+    QFile file("compressed - " + wav.file_name);
     QDataStream out(&file);
+
 }
 
 // Kinda weird to do this since we have T already.
@@ -217,7 +196,7 @@ void compress(const WAV& wav, CompressedWAV<T>& out_c_wav) {
     write(wav, out_c_wav);
 }
 
-template<class T>
-void decompress(const CompressedWAV<T>& c_wav, WAV& out_wav) {
+//template<class T>
+//void decompress(const CompressedWAV<T>& c_wav, WAV& out_wav) {
 
-}
+//}
