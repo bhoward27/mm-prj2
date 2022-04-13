@@ -103,20 +103,26 @@ void compress(const T* samples, quint32 n, CompressedWAV<T>& out_c_wav) {
         }
         Frame<T> frame;
         frame.is_constant = (min_err[0] == 0);
-        frame.p = min_err[0];
-        frame.m = min_err[2];
-        vector<T> first_p_samples;
-        for (quint32 j = 0, k = i; j < frame.p; j++, k++) {
-            first_p_samples.push_back(samples[k]);
+        if (frame.is_constant) {
+            frame.first_p_samples = {samples[i]};
         }
-        vector<T> residuals;
-        for (quint32 j = frame.p; j < start_of_next_frame; j++) {
-            residuals.push_back(e[frame.p][j]);
+        else {
+            frame.p = min_err[0];
+            frame.m = min_err[2];
+            vector<T> first_p_samples;
+            for (quint32 j = 0, k = i; j < frame.p; j++, k++) {
+                first_p_samples.push_back(samples[k]);
+            }
+            vector<T> residuals;
+            for (quint32 j = frame.p; j < start_of_next_frame; j++) {
+                residuals.push_back(e[frame.p][j]);
+            }
+            frame.first_p_samples = first_p_samples;
+            frame.residuals = residuals;
         }
-        frame.first_p_samples = first_p_samples;
-        frame.residuals = residuals;
         out_c_wav.frames.push_back(frame);
     }
+    encode(out_c_wav);
 }
 
 // Function assumes n >= 8.
@@ -127,8 +133,8 @@ quint8 next_byte(int& n, quint64 bits) {
     return byte;
 }
 
-void save_pending_bytes(vector<quint8>& bytes, quint64& b, int& n, quint64 bits) {
-    while (n >= 8) bytes[b++] = next_byte(n, bits);
+void save_pending_bytes(vector<quint8>& bytes, int& n, quint64 bits) {
+    while (n >= 8) bytes.push_back(next_byte(n, bits));
 }
 
 void add_bits(int& n, quint64& bits, quint64 num_new_bits, quint64 x) {
@@ -139,50 +145,62 @@ void add_bits(int& n, quint64& bits, quint64 num_new_bits, quint64 x) {
 
 template<class T>
 void encode(CompressedWAV<T>& out_c_wav) {
-    const int NUM_M_BITS = 6;
     vector<quint8> bytes;
-    // TODO: Write the file header to bytes.
 
     // Encode each frame.
-    // Num bytes saved to vector.
-    quint64 b = 0; // TODO: won't be zero after writing to file header.
+    int n = 0;
+    quint64 bits = 0;
     for (auto frame : out_c_wav.frames) {
         auto p = frame.p;
         auto m = frame.m;
-        int n = 2; // Num bits.
-        quint64 bits = p;
-
-        add_bits(n, bits, NUM_M_BITS, m);
-        save_pending_bytes(bytes, b, n, bits);
-
-        // TODO: Do something different if frame.is_constant.
-
-        // Store the first p samples into bytes.
-        for (int i = 0; i < p; i++) {
-            add_bits(n, bits, out_c_wav.bit_depth, frame.first_p_samples[i]);
-            save_pending_bytes(bytes, b, n, bits);
+        add_bits(n, bits, 1, frame.is_constant);
+        if (frame.is_constant) {
+            add_bits(n, bits, out_c_wav.bit_depth, frame.first_p_samples[0]);
+            save_pending_bytes(bytes, n, bits);
         }
+        else {
+            add_bits(n, bits, 2, p);
+            add_bits(n, bits, 6, m);
+            save_pending_bytes(bytes, n, bits);
 
-        // Rice Encoding.
-        // Create a mask with m 1s in the least significant bits.
-        quint64 m_mask = 0;
-        for (int i = 0; i < m; i++) {
-            m_mask <<= 1;
-            m_mask++;
-        }
-        // Encode each residual.
-        for (auto res : frame.residuals) {
-            quint8 sign = (res >= 0) ? 0 : 1;
-            quint8 m_bits = res & m_mask;
-            quint64 num_zeros = abs((res & ~m_mask) >> m);
+            // Store the first p samples into bytes.
+            for (int i = 0; i < p; i++) {
+                add_bits(n, bits, out_c_wav.bit_depth, frame.first_p_samples[i]);
+                save_pending_bytes(bytes, n, bits);
+            }
 
-            add_bits(n, bits, 1, sign);
-            add_bits(n, bits, m, m_bits);
-            add_bits(n, bits, num_zeros + 1, 1);
+            // Rice Encoding.
+            // Create a mask with m 1s in the least significant bits.
+            quint64 m_mask = 0;
+            for (int i = 0; i < m; i++) {
+                m_mask <<= 1;
+                m_mask++;
+            }
+            // Encode each residual.
+            for (auto res : frame.residuals) {
+                quint8 sign = (res >= 0) ? 0 : 1;
+                quint8 m_bits = res & m_mask;
+                quint64 num_zeros = abs((res & ~m_mask) >> m);
 
-            save_pending_bytes(bytes, b, n, bits);
+                add_bits(n, bits, 1, sign);
+                add_bits(n, bits, m, m_bits);
+                add_bits(n, bits, num_zeros + 1, 1);
+
+                save_pending_bytes(bytes, n, bits);
+            }
         }
     }
+    save_pending_bytes(bytes, n, bits);
+    if (n > 0) {
+        // Pad last bits with (8 - n) 0s at the end.
+        add_bits(n, bits, 8 - n, 0);
+        save_pending_bytes(bytes, n, bits);
+    }
+}
+
+void write(const WAV& wav, const CompressedWAV<T>& c_wav) {
+    QFile("compressed - " + wav.file_name);
+    QDataStream out(&file);
 }
 
 // Kinda weird to do this since we have T already.
@@ -195,10 +213,8 @@ void compress(const WAV& wav, CompressedWAV<T>& out_c_wav) {
         case 16:
             compress((qint16*) wav.bytes.get(), wav.data_size/2, out_c_wav);
             break;
-        default:
-            // Do nothing.
-            break;
     }
+    write(wav, out_c_wav);
 }
 
 template<class T>
