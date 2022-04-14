@@ -210,7 +210,7 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
                 first_p_samples.push_back(samples[k]);
             }
             vector<T> residuals;
-            for (quint32 j = frame.p; j < start_of_next_frame; j++) {
+            for (quint32 j = frame.p; j < start_of_next_frame && j < n; j++) {
                 residuals.push_back(e[frame.p][j]);
             }
             frame.first_p_samples = first_p_samples;
