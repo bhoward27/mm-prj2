@@ -7,6 +7,7 @@
 
 // Function assumes n >= 8.
 quint8 next_byte(int& n, quint64 bits) {
+    if (n < 8) throw std::runtime_error("n must be >= 8.");
     quint64 mask = 0xFFu << (n - 8);
     quint8 byte = (bits & mask) >> (n - 8);
     n -= 8;

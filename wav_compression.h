@@ -10,12 +10,14 @@
 #include <array>
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
 #include "wav.h"
 
 using std::invalid_argument;
 using std::array;
 using std::vector;
 using std::string;
+using std::cout;
 
 template<class T>
 struct Frame {
@@ -83,6 +85,7 @@ void add_bits(int& n, quint64& bits, quint64 num_new_bits, quint64 x);
 
 template<class T>
 void encode(CompressedWAV<T>& out_c_wav) {
+    static long long num_times_zero_was_big = 0;
     vector<quint8> bytes;
 
     // Encode each frame.
@@ -118,7 +121,13 @@ void encode(CompressedWAV<T>& out_c_wav) {
             for (auto res : frame.residuals) {
                 quint8 sign = (res >= 0) ? 0 : 1;
                 quint8 m_bits = res & m_mask;
-                quint64 num_zeros = (sign) ? -((res & ~m_mask) >> m) : (res & ~m_mask) >> m;
+                quint64 num_zeros = (abs(res) & ~m_mask) >> m;// (sign) ? -((res & ~m_mask) >> m) : (res & ~m_mask) >> m;
+                if (num_zeros > 50) {
+                    string msg = " -- num_zeros is getting large! num_zeros = ";
+//                    msg += std::to_string(num_zeros);
+//                    // throw std::runtime_error(msg);
+//                    cout << num_times_zero_was_big++ << msg << std::endl;
+                }
 
                 add_bits(n, bits, 1, sign);
                 add_bits(n, bits, m, m_bits);
@@ -134,6 +143,7 @@ void encode(CompressedWAV<T>& out_c_wav) {
         add_bits(n, bits, 8 - n, 0);
         save_pending_bytes(bytes, n, bits);
     }
+    out_c_wav.bytes = bytes;
 }
 
 template<class T>
@@ -220,9 +230,11 @@ template<class T>
 void compress(const WAV& wav, CompressedWAV<T>& out_c_wav) {
     switch (wav.bits_per_sample) {
         case 8:
+            out_c_wav.bit_depth = 8;
             compress(wav.bytes, wav.data_size, out_c_wav);
             break;
         case 16:
+            out_c_wav.bit_depth = 16;
             compress(wav.bytes, wav.data_size/2, out_c_wav);
             break;
     }
