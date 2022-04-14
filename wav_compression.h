@@ -40,10 +40,6 @@ struct CompressedWAV {
     vector<quint8> bytes;
 };
 
-// const quint16 NUM_SAMPLES_PER_FRAME = 1152;
-//const quint16 NUM_SAMPLES_PER_FRAME = 576;
-// const quint16 NUM_SAMPLES_PER_FRAME = 2304;
-// const quint16 NUM_SAMPLES_PER_FRAME = 4608;
 const quint32 NUM_SAMPLES_PER_FRAME = 1152 * 128;
 const quint8 NUM_PREDICTORS = 4;
 
@@ -126,13 +122,7 @@ void encode(CompressedWAV<T>& out_c_wav) {
             for (auto res : frame.residuals) {
                 quint8 sign = (res >= 0) ? 0 : 1;
                 quint8 m_bits = res & m_mask;
-                quint64 num_zeros = (abs(res) & ~m_mask) >> m;// (sign) ? -((res & ~m_mask) >> m) : (res & ~m_mask) >> m;
-                if (num_zeros > 50) {
-                    string msg = " -- num_zeros is getting large! num_zeros = ";
-//                    msg += std::to_string(num_zeros);
-//                    // throw std::runtime_error(msg);
-//                    cout << num_times_zero_was_big++ << msg << std::endl;
-                }
+                quint64 num_zeros = (abs(res) & ~m_mask) >> m;
 
                 add_bits(n, bits, 1, sign);
                 add_bits(n, bits, m, m_bits);
@@ -179,9 +169,6 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
             quint32 start_of_next_frame = start_of_frame + NUM_SAMPLES_PER_FRAME;
             for (quint32 j = start_of_frame + i; j < start_of_next_frame && j < n; j++) {
                 p[i][j] = predict(i, j, p[i]);
-                if (i > 0) {
-                    string x = "do a dance.";
-                }
             }
         }
     }
@@ -208,9 +195,6 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
                 min_err[1] = err_sum;
                 double temp = ceil(log2(log(2.0) * ((double) err_sum / NUM_SAMPLES_PER_FRAME)));
                 min_err[2] = (quint8) temp; // m
-                if (temp > 10) { // This never occurs. Log grows very slowly.
-                    string s = "hi";
-                }
             }
         }
         Frame<T> frame;

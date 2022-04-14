@@ -142,7 +142,6 @@ void WAV::read_data_header(QDataStream& in) {
         in >> data_size;
 
         // Don't write the data_size to header_bytes. Why? Because the compressed file will not be the same size.
-        // add_bytes(header_bytes, data_size);
     }
 }
 

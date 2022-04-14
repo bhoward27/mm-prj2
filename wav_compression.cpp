@@ -1,11 +1,5 @@
 #include "wav_compression.h"
-//#include "wav.h"
-//#include <array>
-//#include <vector>
-//#include <stdexcept>
-//#include <cmath>
 
-// Function assumes n >= 8.
 quint8 next_byte(int& n, quint64 bits) {
     if (n < 8) throw std::runtime_error("n must be >= 8.");
     quint64 mask = 0xFFu << (n - 8);
@@ -23,8 +17,3 @@ void add_bits(int& n, quint64& bits, quint64 num_new_bits, quint64 x) {
     bits += x;
     n += num_new_bits;
 }
-
-//template<class T>
-//void decompress(const CompressedWAV<T>& c_wav, WAV& out_wav) {
-
-//}
