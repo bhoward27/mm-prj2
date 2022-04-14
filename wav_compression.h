@@ -34,16 +34,21 @@ struct CompressedWAV {
     quint16 num_samples_per_frame;
     quint16 bit_depth;
     vector<Frame<T>> frames;
+    quint8 num_channels;
 
     // These bytes shall be the final output for the compressed audio file.
     vector<quint8> bytes;
 };
 
-const quint16 NUM_SAMPLES_PER_FRAME = 1152;
+// const quint16 NUM_SAMPLES_PER_FRAME = 1152;
+//const quint16 NUM_SAMPLES_PER_FRAME = 576;
+// const quint16 NUM_SAMPLES_PER_FRAME = 2304;
+// const quint16 NUM_SAMPLES_PER_FRAME = 4608;
+const quint32 NUM_SAMPLES_PER_FRAME = 1152 * 128;
 const quint8 NUM_PREDICTORS = 4;
 
 template<class T>
-T predict(quint8 p, quint16 n, const vector<T>& x_hat) {
+T predict(quint8 p, quint32 n, const vector<T>& x_hat) {
     if (n >= x_hat.size()) throw invalid_argument("n must be less than x.size()");
     switch (p) {
         case 0:
@@ -171,9 +176,12 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
         p[i] = vector<T>(n);
         init_predictions(i, n, p[i], samples);
         for (quint32 start_of_frame = 0; start_of_frame < n; start_of_frame += NUM_SAMPLES_PER_FRAME) {
-            quint32 start_of_next_frame = start_of_frame += NUM_SAMPLES_PER_FRAME;
-            for (quint32 j = start_of_frame + i + 1; j < start_of_next_frame; j++) {
+            quint32 start_of_next_frame = start_of_frame + NUM_SAMPLES_PER_FRAME;
+            for (quint32 j = start_of_frame + i; j < start_of_next_frame && j < n; j++) {
                 p[i][j] = predict(i, j, p[i]);
+                if (i > 0) {
+                    string x = "do a dance.";
+                }
             }
         }
     }
@@ -192,17 +200,21 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
         array<quint64, 3> min_err = {0, LONG_MAX, 0};
         for (quint8 j = 0; j < NUM_PREDICTORS; j++) {
             quint64 err_sum = 0;
-            for (quint32 k = i; k < start_of_next_frame; k++) {
+            for (quint32 k = i; k < start_of_next_frame && k < n; k++) {
                 err_sum += abs(e[j][k]);
             }
             if (err_sum < min_err[1]) {
                 min_err[0] = j; // p
                 min_err[1] = err_sum;
-                min_err[2] = (quint8) ceil(log2(log(2) * ((double) err_sum / NUM_SAMPLES_PER_FRAME))); // m
+                double temp = ceil(log2(log(2.0) * ((double) err_sum / NUM_SAMPLES_PER_FRAME)));
+                min_err[2] = (quint8) temp; // m
+                if (temp > 10) { // This never occurs. Log grows very slowly.
+                    string s = "hi";
+                }
             }
         }
         Frame<T> frame;
-        frame.is_constant = (min_err[0] == 0);
+        frame.is_constant = false;// (min_err[0] == 0);
         if (frame.is_constant) {
             frame.first_p_samples = {samples[i]};
         }
@@ -228,6 +240,7 @@ void compress(const std::unique_ptr<char[]>& samples_ptr, quint32 n, CompressedW
 // Kinda weird to do this since we have T already.
 template<class T>
 void compress(const WAV& wav, CompressedWAV<T>& out_c_wav) {
+    out_c_wav.num_channels = wav.num_channels;
     switch (wav.bits_per_sample) {
         case 8:
             out_c_wav.bit_depth = 8;
