@@ -1,11 +1,12 @@
 # Running the Executable
 
-The executable provided was compiled for Windows 10 on a Dell XPS 13. I really have no idea how compatible this executable would be on a different machine, so in the event that the executable does not run (or has unexpected bugs in it), you will need to install Qt Creator and build the project from the source code, which is explained below.
+The executable provided was compiled for Windows 10 on a Dell XPS 13. Unfortunately, it will not work for you on its own -- you need the Qt dll libraries to be installed in the same directory for it to work -- this is just the executable that's produced by Qt, there is nothing I can do about it. So unfortunately, you will need to install Qt Creator and compile from source code in order to the run program.
 
 # Setup/Installation if the executable doesn't work
 
- - You can use macOS or Windows -- I have tested it on both
+ - You can use macOS or Windows -- I can verify that my program works on both platforms, as I have tested it. If it doesn't work for you, please email me.
  - Install Qt Creator. This may take a long time. I apologize. Here is the link (which hopefully works) for the Qt installer: https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4
+ - Make sure that you install Qt Charts as one of the Additional Libraries during the installation
  - Open Qt Creator
  - Click File in the menu bar
  - Click Open File or Project
