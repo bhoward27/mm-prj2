@@ -76,7 +76,7 @@ void WavWindow::on_selectFileButton_clicked() {
         case 8:
         {
             CompressedWAV<quint8> c_wav8 = CompressedWAV<quint8>();
-            // compress(wav, c_wav8);
+            compress(wav, c_wav8);
             lzw_compress(wav.bytes, wav.data_size, c_wav8);
             plot_waveform((quint8*) wav.bytes.get(), wav.data_size, wav);
             break;
@@ -84,7 +84,7 @@ void WavWindow::on_selectFileButton_clicked() {
         case 16:
         {
             CompressedWAV<qint16> c_wav16 = CompressedWAV<qint16>();
-            // compress(wav, c_wav16);
+            compress(wav, c_wav16);
             lzw_compress(wav.bytes, wav.data_size, c_wav16);
             plot_waveform((qint16*) wav.bytes.get(), wav.data_size/2, wav);
             break;

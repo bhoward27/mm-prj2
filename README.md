@@ -1,15 +1,18 @@
-# Setup/Installation
+# Running the Executable
 
- - Use macOS (Should work on Windows since Qt is multiplatform, but haven't tested this) -- definitely works on macOS Monterey
+The executable provided was compiled for Windows 10 on a Dell XPS 13. I really have no idea how compatible this executable would be on a different machine, so in the event that the executable does not run (or has unexpected bugs in it), you will need to install Qt Creator and build the project from the source code, which is explained below.
+
+# Setup/Installation if the executable doesn't work
+
+ - You can use macOS or Windows -- I have tested it on both
  - Install Qt Creator. This may take a long time. I apologize. Here is the link (which hopefully works) for the Qt installer: https://www.qt.io/download-qt-installer?hsCtaTracking=99d9dd4f-5681-48d2-b096-470725510d34%7C074ddad0-fdef-4e53-8aa8-5e8a876d6ab4
  - Open Qt Creator
  - Click File in the menu bar
  - Click Open File or Project
- - Find the mm-prj1 folder (which contains the source code for this project) and select mm-prj1.pro and click Open
+ - Find the mm-prj2 folder (which contains the source code for this project) and select mm-prj2.pro and click Open
 
 # Running the program
 
- 1. Click the green play button (Run) in Qt Creator. 
- 2. You should see a window open with two big buttons: WAV and PNG. Click one of them to get started.
-
- Note: For the PNG portion, you can select the kind of dithering technique you would like to be used: Bayer matrix or Floyd-Steinberg. Unfortunately, in order to switch between modes you must open the file up all over again (i.e., you should select your dithering mode prior to opening the file, as the dithered image will not refresh after reselecting the dithering mode, only after opening a file).
+ 1. Read the report first and watch the demo video to understand how the program works.
+ 2. Click the green play button (Run) in Qt Creator. 
+ 3. You should see a window open with two big buttons: WAV and PNG. Click WAV to get started.
